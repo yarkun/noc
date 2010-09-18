@@ -1,0 +1,22 @@
+# noc
+
+NoC - Translation of 'Nature of Code' examples from shiffman.net into clojure using the incanter processing library from incanter.org.
+
+## Usage
+
+For now, main function runs the examples:
+    lein deps
+    lein compile
+    lein uberjar
+    java -jar noc-0.0.1-SNAPSHOT-standalone.jar
+
+## Installation
+
+Requires leiningen. After that, clone the git repo, then follow usage
+instructions.
+
+## License
+
+Copyright (C) 2010 Yavuz Arkun
+
+Distributed under the Eclipse Public License, the same as Clojure.
