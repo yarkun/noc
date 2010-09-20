@@ -1,7 +1,6 @@
 (ns noc.montecarlo
   "NoC - Monte Carlo Program"
-  (:use (incanter core stats processing)
-        (clojure.contrib.math)
+  (:use (incanter core processing)
         (noc core))
   )
 
@@ -10,30 +9,37 @@
   function. Defaults to points outside a quarter circle if no function
   is passed. Max. 1000 tries. "
 
+  ([sketch]
+     (let [func (fn [sketch x y] (> (+ (* x x) (* -2 (width sketch) y)
+                                       (* y y))
+                                    0))]
+       
+       (loop [rx (rand-int (width sketch))
+              ry (rand-int (height sketch))
+              count 1000] ; we try only upto 1000 times, so there is a
+                                        ; chance of an error
+         (if (and (> count 0) (func sketch rx ry))
+           (recur (rand-int (width sketch)) (rand-int (height sketch)) (dec count))
+           [rx ry]))))
+  
   ([sketch func]
-
      (loop [rx (rand-int (width sketch))
             ry (rand-int (height sketch))
             count 1000]      ; we try only upto 1000 times, so there is a
                                         ; chance of an error
        (if (and (> count 0) (func sketch rx ry))
          (recur (rand-int (width sketch)) (rand-int (height sketch)) (dec count))
-         [rx ry])))
-  
-  ([sketch]
-     (montecarlo (fn [sketch x y] (> (+ (* x x) (* -2 (width sketch) y)
-                                       (* y y))
-                                    0)))))
+         [rx ry]))))
 
 
-(let [vals (ref (vec (repeat (sze 0) 0)))
-      y-max (ref (sze 1))
+(let [vals (ref (vec (repeat (size-default 0) 0)))
+      y-max (ref (size-default 1))
       normalize true
             
       sktch (sketch
              (setup []
                     (doto this
-                      (size (sze 0) (sze 1))
+                      (size (size-default 0) (size-default 1))
                       (fill 128 128 128 255)
                       (stroke 28 128 128 255)
                       (rect 0 0  (width this) (height this))
@@ -51,7 +57,7 @@
                       (when (> (@vals rx) @y-max) (ref-set y-max (@vals rx))))
 
                      (stroke this 255 245 245 50)
-                     (let [scale-y (* 1.0 (/ (sze 1) @y-max))]
+                     (let [scale-y (* 1.0 (/ (height this) @y-max))]
                        (if (= old-y-max y-max)
                          (line rx 0 rx (* (@vals rx) (if normalize scale-y 1)))
                          (do
@@ -65,3 +71,4 @@
                      (ellipse this 0 0 (* 2  (width this)) (* 2 (height this))))))]
   
   (view sktch :size [(size-adj-w) (size-adj-h)]))
+
