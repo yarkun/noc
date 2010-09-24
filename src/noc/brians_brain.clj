@@ -7,24 +7,27 @@
 ;; (def w (agent [#{19904 19906 20104 20105 20108 20109 20305}
 ;;                #{20110 20306 20307 20308}]))
 
+(def board-size 90)
+(def cell-size 6)
+
 (defn pos-to-xy
   [pos]
-  [(mod  pos (size-default 0))
-   (quot pos (size-default 1))])
+  [(mod  pos ca-size)
+   (quot pos ca-size)])
 
 (defn xy-to-pos
   [x y]
-  (+ x (* y (size-default 0))))
+  (+ x (* y ca-size)))
 
 (defn render-cell
   [sketch pos]
   (let [[x y] (pos-to-xy pos)]
-    (point sketch x y)))
+    (rect sketch (* x cell-size) (* y cell-size) cell-size cell-size)))
 
 (defn neighbors
   [pos]
-  (let [w     (size-default 0)
-        h     (size-default 1)
+  (let [w     ca-size
+        h     ca-size
         [x y] (pos-to-xy pos)
         x-1    (mod (- x 1) w)
         x+1    (mod (+ x 1) w)
@@ -62,22 +65,24 @@
 (let [sktch (sketch
              (setup
               []
-              (size this (size-default 0) (size-default 1))
-              (background this 100)
+              (size this (* board-size cell-size) (* board-size cell-size))
+              (background this 80)
               (framerate this 120)
               )
 
              (draw
               []
-              (background this 100)
-              (stroke this 255)
+              (background this 80)
+              (stroke this 20)
+              (fill this 255)
               (dorun (map #(render-cell this %) (@w 0)))
-              (stroke this 180)
+              (stroke this 20)
+              (fill this 180)
               (dorun (map #(render-cell this %) (@w 1)))
               (send-off w tick)
               (when (> (frame-count this) 1000)
                 (no-loop this)
                 (println (/ (millis this) (frame-count this) 1.0)))))]
   
-  (view sktch :size [(size-adj-w) (size-adj-h)]))
+  (view sktch :size [(* board-size cell-size) (+ (* board-size cell-size) 22)]))
 
