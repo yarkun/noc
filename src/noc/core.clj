@@ -32,6 +32,12 @@
   [(constrain x 0 (width sketch))
    (constrain y 0 (height sketch))])
 
+(defn flip-y
+  "Returns the flipped y coordinate to move the origin from
+  top left to bottom left of the sketch window."
+  [sketch y]
+  (- (height sketch) y))
+
 ;;; Processing PVector to Incanter Matrix mapping
 
 ;; x 	x component of the vector
