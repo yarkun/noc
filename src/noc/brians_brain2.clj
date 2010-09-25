@@ -59,9 +59,9 @@
 
 ; state is stored in a vector of 2 sets, first one for on cells, 2nd
 ; for dying cells. The rest are implicitly the off cells.
-(def w (agent [(apply conj #{} (for [i (range (int 1000))]
-                                 (xy-to-pos (+ (int 50) (rand-int (int 100)))
-                                            (+ (int 50) (rand-int (int 100))))))
+(def w (agent [(apply conj #{} (for [i (range (int (/ (* board-size board-size) 20)))]
+                                 (xy-to-pos (+ (int (/ board-size 4)) (rand-int (int (/ board-size 2))))
+                                            (+ (int (/ board-size 4)) (rand-int (int (/ board-size 2)))))))
                #{}]))
 
 (let [sktch (sketch

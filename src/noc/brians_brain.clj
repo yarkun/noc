@@ -7,17 +7,17 @@
 ;; (def w (agent [#{19904 19906 20104 20105 20108 20109 20305}
 ;;                #{20110 20306 20307 20308}]))
 
-(def board-size 90)
-(def cell-size 6)
+(def board-size (int 90))
+(def cell-size (int 6))
 
-(defn pos-to-xy
+(defmacro pos-to-xy
   [pos]
-  [(mod  pos ca-size)
-   (quot pos ca-size)])
+  `[(mod  ~pos board-size) 
+    (quot ~pos board-size)])
 
-(defn xy-to-pos
+(defmacro xy-to-pos
   [x y]
-  (+ x (* y ca-size)))
+  `(+ ~x (* ~y board-size)))
 
 (defn render-cell
   [sketch pos]
@@ -26,13 +26,11 @@
 
 (defn neighbors
   [pos]
-  (let [w     ca-size
-        h     ca-size
-        [x y] (pos-to-xy pos)
-        x-1    (mod (- x 1) w)
-        x+1    (mod (+ x 1) w)
-        y-1    (mod (- y 1) h)
-        y+1    (mod (+ y 1) h)]
+  (let [[x y] (pos-to-xy pos)
+        x-1    (mod (- x (int 1)) board-size)
+        x+1    (mod (+ x (int 1)) board-size)
+        y-1    (mod (- y (int 1)) board-size)
+        y+1    (mod (+ y (int 1)) board-size)]
     
     #{(xy-to-pos x-1 y-1) (xy-to-pos x y-1) (xy-to-pos x+1 y-1)
       (xy-to-pos x-1 y)                     (xy-to-pos x+1 y)
@@ -43,9 +41,8 @@
   (let [s1          (difference next-bunch more-on)
         new-more-on (intersection s1 on-2)
         s2          (difference s1 on-2)
-        new-on-2    (intersection s2 on-1)
-        new-on-1    (difference s2 new-on-2)]
-    [(union (difference on-1 new-on-2) new-on-1)
+        new-on-2    (intersection s2 on-1)]
+    [(union (difference on-1 new-on-2) (difference s2 new-on-2))
      (union (difference on-2 new-more-on) new-on-2)
      (union more-on new-more-on)]))
 
@@ -53,13 +50,16 @@
   [[on-cells dying-cells]]
   [(difference ((reduce tally-on-cells-neighbors
                         [#{} #{} #{}]
-                        (map neighbors on-cells)) 1)
+                        (map neighbors on-cells)) (int 1))
                (union on-cells dying-cells))
    on-cells])
 
-(def w (agent [(apply conj #{} (for [i (range 100)]
-                                 (xy-to-pos (+ 50 (rand-int 100))
-                                            (+ 50 (rand-int 100)))))
+
+; state is stored in a vector of 2 sets, first one for on cells, 2nd
+; for dying cells. The rest are implicitly the off cells.
+(def w (agent [(apply conj #{} (for [i (range (int (/ (* board-size board-size) 20)))]
+                                 (xy-to-pos (+ (int (/ board-size 4)) (rand-int (int (/ board-size 2))))
+                                            (+ (int (/ board-size 4)) (rand-int (int (/ board-size 2)))))))
                #{}]))
 
 (let [sktch (sketch
@@ -67,8 +67,7 @@
               []
               (size this (* board-size cell-size) (* board-size cell-size))
               (background this 80)
-              (framerate this 120)
-              )
+              (framerate this 60))
 
              (draw
               []
@@ -80,9 +79,11 @@
               (fill this 180)
               (dorun (map #(render-cell this %) (@w 1)))
               (send-off w tick)
-              (when (> (frame-count this) 1000)
+
+              (when (> (frame-count this) (int 2000))
                 (no-loop this)
-                (println (/ (millis this) (frame-count this) 1.0)))))]
+                (println
+                 (millis this) (frame-count this)
+                 (/ (millis this) (frame-count this) 1.0)))))]
   
   (view sktch :size [(* board-size cell-size) (+ (* board-size cell-size) 22)]))
-
