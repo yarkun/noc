@@ -4,9 +4,6 @@
         (noc core)
         (clojure set)))
 
-;; (def w (agent [#{19904 19906 20104 20105 20108 20109 20305}
-;;                #{20110 20306 20307 20308}]))
-
 (def board-size (int 200))
 (def cell-size (int 1))
 
@@ -59,15 +56,21 @@
 
 ; state is stored in a vector of 2 sets, first one for on cells, 2nd
 ; for dying cells. The rest are implicitly the off cells.
-(def w (agent [(apply conj #{} (for [i (range (int (/ (* board-size board-size) 20)))]
-                                 (xy-to-pos (+ (int (/ board-size 4)) (rand-int (int (/ board-size 2))))
-                                            (+ (int (/ board-size 4)) (rand-int (int (/ board-size 2)))))))
-               #{}]))
+(def w (agent
+        [(apply conj #{}
+                (for [i (range (int (/ (* board-size board-size) 20)))]
+                  (xy-to-pos (+ (int (/ board-size 4))
+                                (rand-int (int (/ board-size 2))))
+                             (+ (int (/ board-size 4))
+                                (rand-int (int (/ board-size 2)))))))
+         #{}]))
 
 (let [sktch (sketch
              (setup
               []
-              (size this (* board-size cell-size) (* board-size cell-size))
+              (size this
+                    (* board-size cell-size)
+                    (* board-size cell-size))
               (background this 80)
               (framerate this 60))
 
@@ -89,4 +92,5 @@
                  (millis this) (frame-count this)
                  (/ (millis this) (frame-count this) 1.0)))))]
   
-  (view sktch :size [(* board-size cell-size) (+ (* board-size cell-size) 22)]))
+  (view sktch :size [(* board-size cell-size)
+                     (+ (* board-size cell-size) 22)]))
