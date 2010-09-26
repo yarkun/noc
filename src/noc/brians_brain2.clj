@@ -4,7 +4,7 @@
         (noc core)
         (clojure set)))
 
-(def board-size (int 200))
+(def board-size (int 400))
 (def cell-size (int 1))
 
 (defmacro pos-to-xy
@@ -36,36 +36,49 @@
       (xy-to-pos x-1 y+1) (xy-to-pos x y+1) (xy-to-pos x+1 y+1)}))
 
 (defn tally-on-cells-neighbors
-  [[on-1 on-2 more-on] next-bunch]
-  (let [s1          (difference next-bunch more-on)
-        new-more-on (intersection s1 on-2)
+  [[on-1 on-2 on-more] next-bunch]
+  (let [s1          (difference next-bunch on-more)
+        new-on-more (intersection s1 on-2)
         s2          (difference s1 on-2)
         new-on-2    (intersection s2 on-1)]
     [(union (difference on-1 new-on-2) (difference s2 new-on-2))
-     (union (difference on-2 new-more-on) new-on-2)
-     (union more-on new-more-on)]))
+     (union (difference on-2 new-on-more) new-on-2)
+     (union on-more new-on-more)]))
+
+; builds a list of sets consisting of the neighbors of each one of the
+; currently on cells, then runs this list through the tally-on-cells,
+; building sets of the cells with 1, 2 and more on cells. The new on
+; cells are those with 2 on neighbors, minus the currently on and
+; dying cells.
 
 (defn tick
-  [[on-cells dying-cells]]
-  [(difference ((reduce tally-on-cells-neighbors
-                        [#{} #{} #{}]
-                        (map neighbors on-cells)) (int 1))
-               (union on-cells dying-cells))
-   on-cells])
+  [{:keys [tick-count on-cells dying-cells]}]
+  {:tick-count (inc tick-count)
+   :on-cells (difference ((reduce tally-on-cells-neighbors
+                                  [#{} #{} #{}]
+                                  (map neighbors on-cells)) (int 1))
+                         (union on-cells dying-cells))
+   :dying-cells on-cells})
+
+; State of the agent is stored in a map of a tick count and 2 sets,
+; first one for on cells, 2nd for dying cells. The rest are implicitly
+; the off cells.
+(def w
+  (agent
+   {:tick-count 0
+    :on-cells (apply
+               conj #{}
+               (for [i (range (int (/ (* board-size board-size) 50)))]
+                 (xy-to-pos (+ (int (/ board-size 4))
+                               (rand-int (int (/ board-size 2))))
+                            (+ (int (/ board-size 4))
+                               (rand-int (int (/ board-size 2)))))))
+    :dying-cells #{}}))
 
 
-; state is stored in a vector of 2 sets, first one for on cells, 2nd
-; for dying cells. The rest are implicitly the off cells.
-(def w (agent
-        [(apply conj #{}
-                (for [i (range (int (/ (* board-size board-size) 20)))]
-                  (xy-to-pos (+ (int (/ board-size 4))
-                                (rand-int (int (/ board-size 2))))
-                             (+ (int (/ board-size 4))
-                                (rand-int (int (/ board-size 2)))))))
-         #{}]))
 
-(let [sktch (sketch
+(let [max-tick (int 500)
+      sktch (sketch
              (setup
               []
               (size this
@@ -76,21 +89,24 @@
 
              (draw
               []
+
               (background this (int 80))
 
               (stroke this 255)
-              (render this (@w (int 0)))
+              (render this (:on-cells @w))
 
               (stroke this 180)
-              (render this (@w (int 1)))
+              (render this (:dying-cells @w))
 
-              (send-off w tick)
+              (if (<= (frame-count this) max-tick) (send w tick))
 
-              (when (> (frame-count this) (int 2000))
+              (when (>= (:tick-count @w) max-tick)
                 (no-loop this)
                 (println
-                 (millis this) (frame-count this)
-                 (/ (millis this) (frame-count this) 1.0)))))]
+                 "Frames:" (frame-count this)
+                 "Millisecs:" (millis this)
+                 "Ticks:" (:tick-count @w)
+                 "Millisecs/tick:" (float (/ (millis this) (:tick-count @w)))))))]
   
   (view sktch :size [(* board-size cell-size)
                      (+ (* board-size cell-size) 22)]))
