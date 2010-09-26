@@ -75,9 +75,14 @@
                                (rand-int (int (/ board-size 2)))))))
     :dying-cells #{}}))
 
+(def new-state-available (ref true))
 
+(defn flag-new-state
+  [k a old-state new-state]
+  (dosync (ref-set new-state-available true)))
 
 (let [max-tick (int 500)
+      a 255
       sktch (sketch
              (setup
               []
@@ -85,20 +90,20 @@
                     (* board-size cell-size)
                     (* board-size cell-size))
               (background this 80)
-              (framerate this 60))
+              (framerate this 60)
+              (add-watch w :flag flag-new-state))
 
              (draw
               []
+              (when @new-state-available
+                (dosync (ref-set new-state-available false))
+                (background this (int 80))
+                (stroke this 255 255 255 a)
+                (render this (:on-cells @w))
+                (stroke this 180 180 180 a)
+                (render this (:dying-cells @w)))
 
-              (background this (int 80))
-
-              (stroke this 255)
-              (render this (:on-cells @w))
-
-              (stroke this 180)
-              (render this (:dying-cells @w))
-
-              (if (<= (frame-count this) max-tick) (send w tick))
+              (when (<= (frame-count this) max-tick) (send w tick))
 
               (when (>= (:tick-count @w) max-tick)
                 (no-loop this)
@@ -106,7 +111,8 @@
                  "Frames:" (frame-count this)
                  "Millisecs:" (millis this)
                  "Ticks:" (:tick-count @w)
-                 "Millisecs/tick:" (float (/ (millis this) (:tick-count @w)))))))]
+                 "Millisecs/tick:" (float (/ (millis this)
+                                             (:tick-count @w)))))))]
   
   (view sktch :size [(* board-size cell-size)
                      (+ (* board-size cell-size) 22)]))
