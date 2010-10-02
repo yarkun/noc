@@ -7,16 +7,20 @@
 (def board-size (int 400))
 (def cell-size (int 1))
 
+
 (defn pos-to-xy
+"converts a postion index to a x-y coordinate."
   [pos]
   [(mod  pos board-size) 
    (quot pos board-size)])
 
 (defn xy-to-pos
+  "converts a x-y coordinate to a position index."
   [x y]
   (+ x (* y board-size)))
 
 (defn render
+  "renders a set of points."
   [sketch points]
   (dorun
     (map (fn [pos] (let [[x y] (pos-to-xy pos)]
@@ -24,6 +28,8 @@
          points)))
 
 (defn neighbors
+"returns a set of the 8 neighbors of a given cell. Edges are wrapped
+around (torus topology.)"
   [pos]
   (let [[x y] (pos-to-xy pos)
         x-1    (mod (- x (int 1)) board-size)
@@ -36,6 +42,9 @@
       (xy-to-pos x-1 y+1) (xy-to-pos x y+1) (xy-to-pos x+1 y+1)}))
 
 (defn tally-on-cells-neighbors
+  "given a vector of 3 sets containing the tally so far, and a set of
+ cells that have at least one on neighbor, returns the updated tally
+ of cells with 1, 2 and more than 2 on neighbors."
   [[on-1 on-2 on-more] next-bunch]
   (let [s1          (difference next-bunch on-more)
         new-on-more (intersection s1 on-2)
@@ -45,13 +54,11 @@
      (union (difference on-2 new-on-more) new-on-2)
      (union on-more new-on-more)]))
 
-; builds a list of sets consisting of the neighbors of each one of the
-; currently on cells, then runs this list through the tally-on-cells,
-; building sets of the cells with 1, 2 and more on cells. The new on
-; cells are those with 2 on neighbors, minus the currently on and
-; dying cells.
-
 (defn tick
+"builds a list of sets consisting of the neighbors of each one of the
+currently on cells (excluding on or dying cells), then runs this
+list through the tally-on-cells, building sets of the cells with 1,
+2 and more than 2 on cells."
   [{:keys [tick-count on-cells dying-cells]}]
   {:tick-count (inc tick-count)
    :on-cells (let [on-and-dying-cells (union on-cells dying-cells)]
@@ -63,10 +70,10 @@
                 (int 1)))
    :dying-cells on-cells})
 
+(def w
 ; State of the agent is stored in a map of a tick count and 2 sets,
 ; first one for on cells, 2nd for dying cells. The rest are implicitly
 ; the off cells.
-(def w
   (agent
    {:tick-count 0
     :on-cells #{80200 80201}
@@ -79,6 +86,9 @@
     ;;                            (rand-int (int (/ board-size 2)))))))
     :dying-cells #{}}))
 
+; since the draw function has an implicit loop, unless we signal the
+; availabilty of a new generation of cells, the old set will be
+; redrawn unnecessarily almost every iteration.
 (def new-state-available (ref true))
 
 (defn flag-new-state
