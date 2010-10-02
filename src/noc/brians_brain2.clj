@@ -69,13 +69,14 @@
 (def w
   (agent
    {:tick-count 0
-    :on-cells (apply
-               conj #{}
-               (for [i (range (int (/ (* board-size board-size) 50)))]
-                 (xy-to-pos (+ (int (/ board-size 4))
-                               (rand-int (int (/ board-size 2))))
-                            (+ (int (/ board-size 4))
-                               (rand-int (int (/ board-size 2)))))))
+    :on-cells #{80200 80201}
+    ;; (apply
+    ;;            conj #{}
+    ;;            (for [i (range (int (/ (* board-size board-size) 50)))]
+    ;;              (xy-to-pos (+ (int (/ board-size 4))
+    ;;                            (rand-int (int (/ board-size 2))))
+    ;;                         (+ (int (/ board-size 4))
+    ;;                            (rand-int (int (/ board-size 2)))))))
     :dying-cells #{}}))
 
 (def new-state-available (ref true))
