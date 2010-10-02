@@ -7,21 +7,21 @@
 (def board-size (int 400))
 (def cell-size (int 1))
 
-(defmacro pos-to-xy
+(defn pos-to-xy
   [pos]
-  `[(mod  ~pos board-size) 
-    (quot ~pos board-size)])
+  [(mod  pos board-size) 
+   (quot pos board-size)])
 
-(defmacro xy-to-pos
+(defn xy-to-pos
   [x y]
-  `(+ ~x (* ~y board-size)))
+  (+ x (* y board-size)))
 
-(defmacro render
+(defn render
   [sketch points]
-  `(dorun
-    (map (fn [~'pos] (let [[~'x ~'y] (pos-to-xy ~'pos)]
-                      (point ~sketch ~'x ~'y)))
-         ~points)))
+  (dorun
+    (map (fn [pos] (let [[x y] (pos-to-xy pos)]
+                      (point sketch x y)))
+         points)))
 
 (defn neighbors
   [pos]
