@@ -39,9 +39,9 @@
   [[on-1 on-2 on-more] next-bunch]
   (let [s1          (difference next-bunch on-more)
         new-on-more (intersection s1 on-2)
-        s2          (difference s1 on-2)
+        s2          (difference s1 new-on-more)
         new-on-2    (intersection s2 on-1)]
-    [(union (difference on-1 new-on-2) (difference s2 new-on-2))
+    [(difference (union on-1 s2) new-on-2)
      (union (difference on-2 new-on-more) new-on-2)
      (union on-more new-on-more)]))
 
