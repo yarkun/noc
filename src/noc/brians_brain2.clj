@@ -54,10 +54,13 @@
 (defn tick
   [{:keys [tick-count on-cells dying-cells]}]
   {:tick-count (inc tick-count)
-   :on-cells (difference ((reduce tally-on-cells-neighbors
-                                  [#{} #{} #{}]
-                                  (map neighbors on-cells)) (int 1))
-                         (union on-cells dying-cells))
+   :on-cells (let [on-and-dying-cells (union on-cells dying-cells)]
+               ((reduce tally-on-cells-neighbors
+                        [#{} #{} #{}]
+                        (map #(difference (neighbors %)
+                                          on-and-dying-cells)
+                             on-cells))
+                (int 1)))
    :dying-cells on-cells})
 
 ; State of the agent is stored in a map of a tick count and 2 sets,
