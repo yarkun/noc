@@ -4,7 +4,7 @@
         (noc core)
         (clojure set)))
 
-(def board-size (int 400))
+(def board-size (int 1200))
 (def cell-size (int 1))
 
 
@@ -76,7 +76,8 @@ list through the tally-on-cells, building sets of the cells with 1,
 ; the off cells.
   (agent
    {:tick-count 0
-    :on-cells #{80200 80201}
+    :on-cells #{(+ -1 (/ board-size 2) (* board-size (/ board-size 2)))
+                (+ (/ board-size 2) (* board-size (/ board-size 2)))}
     ;; (apply
     ;;            conj #{}
     ;;            (for [i (range (int (/ (* board-size board-size) 50)))]
@@ -95,14 +96,15 @@ list through the tally-on-cells, building sets of the cells with 1,
   [k a old-state new-state]
   (dosync (ref-set new-state-available true)))
 
-(let [max-tick (int 500)
+(let [max-tick (int 1200)
       a 255
       sktch (sketch
              (setup
               []
               (size this
                     (* board-size cell-size)
-                    (* board-size cell-size))
+                    (* board-size cell-size)
+                    P2D)
               (background this 80)
               (framerate this 60)
               (add-watch w :flag flag-new-state))
@@ -111,7 +113,8 @@ list through the tally-on-cells, building sets of the cells with 1,
               []
               (when @new-state-available
                 (dosync (ref-set new-state-available false))
-                (background this (int 80))
+                (fade-drawing this 2)
+                ;(background this 80 80 80 1)
                 (stroke this 255 255 255 a)
                 (render this (:on-cells @w))
                 (stroke this 180 180 180 a)
@@ -121,6 +124,7 @@ list through the tally-on-cells, building sets of the cells with 1,
 
               (when (>= (:tick-count @w) max-tick)
                 (no-loop this)
+                (save this "/Volumes/R250/graphics/generative/bb1.tif")
                 (println
                  "Frames:" (frame-count this)
                  "Millisecs:" (millis this)
