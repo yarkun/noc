@@ -1,9 +1,11 @@
-# noc
+noc
+===
 
 NoC - Translation of 'Nature of Code' examples from shiffman.net into
 clojure using the incanter processing library from incanter.org.
 
-## Usage
+Usage
+-----
 
 For now, its best to start swank, connect to it with emacs and run
 individual examples using emacs:
@@ -15,13 +17,18 @@ individual examples using emacs:
     4. in emacs M-x slime-connect
     5. open an example file, C-c C-k to run it
 
+It seems that the first time you run lein swank, it will run the
+main.clj instead of starting a swank server. Exit in eshell, restart
+with lein swank.
 
-## Installation
+Installation
+------------
 
 Requires leiningen (and emacs+swank-clojure.) After that, clone the
 git repo, then follow usage instructions.
 
-## License
+License
+-------
 
 Copyright (C) 2010 Yavuz Arkun
 
